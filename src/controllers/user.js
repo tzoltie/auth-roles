@@ -1,10 +1,14 @@
 const { PrismaClientKnownRequestError } = require("@prisma/client")
-const { createUserDb } = require('../domains/user.js')
+const jwt = require('jsonwebtoken')
+const bcrypt = require('bcrypt')
+const prisma = require('../utils/prisma.js')
+const { createUserDb, findUser } = require('../domains/user.js')
 
 const createUser = async (req, res) => {
   const {
     username,
-    password
+    password,
+    role
   } = req.body
 
   if (!username || !password) {
@@ -14,7 +18,7 @@ const createUser = async (req, res) => {
   }
 
   try {
-    const createdUser = await createUserDb(username, password)
+    const createdUser = await createUserDb(username, password, role)
 
     return res.status(201).json({ user: createdUser })
   } catch (e) {
@@ -28,6 +32,37 @@ const createUser = async (req, res) => {
   }
 }
 
+const login = async (req, res) => {
+  const { 
+    username, 
+    password 
+  } = req.body
+
+  const userFound = await findUser(username)
+  const passwordCheck = await bcrypt.compare(password, userFound.passwordHash)
+  
+  if(!passwordCheck) {
+    res.status(400).json({
+      error: "Invalid password"
+    })
+  }
+
+  const token = jwt.sign({ sub: userFound.id }, process.env.JWT_SECRET)
+
+  res.status(200).json({
+    token
+  })
+}
+
+const getAll = async (req, res) => {
+  const users = await prisma.user.findMany()
+  res.status(200).json({
+    users
+  })
+}
+
 module.exports = {
-  createUser
+  createUser,
+  login,
+  getAll
 }

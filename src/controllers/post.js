@@ -1,5 +1,6 @@
 const { PrismaClientKnownRequestError } = require("@prisma/client")
 const { createPostDb } = require('../domains/post.js')
+const prisma = require("../utils/prisma.js")
 
 const createPost = async (req, res) => {
   const {
@@ -28,6 +29,14 @@ const createPost = async (req, res) => {
   }
 }
 
+const getAllPosts = async (req, res) => {
+  const posts = await prisma.post.findMany()
+  res.status(200).json({
+    posts
+  })
+}
+
 module.exports = {
-  createPost
+  createPost,
+  getAllPosts
 }
