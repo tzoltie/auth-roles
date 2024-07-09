@@ -22,6 +22,28 @@ const verifyToken = async (req, res, next) => {
     next()
   }
 
+  const verifyAdmin = async (req, res, next) => {
+    const [_, token] = req.get('Authorization').split(' ')
+
+    try {
+      const decodedToken = jwt.verify(token, process.env.JWT_SECRET)
+      const userFound = await prisma.user.findFirst({
+        where: {
+          id: decodedToken.sub
+        }
+      })
+      if(userFound.role !== "ADMIN") {
+        throw "Not an Admin"
+      }
+    } catch(e) {
+      return res.status(403).json({
+        error: 'Invalid token'
+      })
+    }
+    next()
+  }
+
   module.exports = {
-    verifyToken
+    verifyToken,
+    verifyAdmin
   }

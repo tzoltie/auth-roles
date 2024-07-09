@@ -2,7 +2,7 @@ const { PrismaClientKnownRequestError } = require("@prisma/client")
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
 const prisma = require('../utils/prisma.js')
-const { createUserDb, findUser } = require('../domains/user.js')
+const { createUserDb, findUser, findUserByID, deleteUserByID } = require('../domains/user.js')
 
 const createUser = async (req, res) => {
   const {
@@ -47,7 +47,7 @@ const login = async (req, res) => {
     })
   }
 
-  const token = jwt.sign({ sub: userFound.id }, process.env.JWT_SECRET)
+  const token = jwt.sign({ sub: userFound.id, role: userFound.role }, process.env.JWT_SECRET)
 
   res.status(200).json({
     token
@@ -55,14 +55,35 @@ const login = async (req, res) => {
 }
 
 const getAll = async (req, res) => {
-  const users = await prisma.user.findMany()
+  const users = await prisma.user.findMany({
+    select: {
+      id: true,
+      username: true
+    }
+  })
   res.status(200).json({
     users
+  })
+}
+
+const deleteUser = async (req, res) => {
+  const id = Number(req.params.id)
+  const found = await findUserByID(id)
+
+  if(!found) {
+    return res.status(404).json({
+      message: "User not found by that ID"
+    })
+  }
+  const deletetedUser = await deleteUserByID(id)
+  res.status(200).json({
+    user: deletetedUser
   })
 }
 
 module.exports = {
   createUser,
   login,
-  getAll
+  getAll,
+  deleteUser
 }
