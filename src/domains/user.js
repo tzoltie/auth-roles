@@ -16,18 +16,27 @@ const createUserDb = async (username, password, role) => await prisma.user.creat
 const findUser = async (username) => await prisma.user.findUnique({
   where: {
     username: username
+  },
+  include: {
+    posts: true
   }
 })
 
 const findUserByID = async (id) => await prisma.user.findUnique({
   where: {
     id: id
+  },
+  include: {
+    posts: true
   }
 })
 
 const deleteUserByID = async (id) => await prisma.user.delete({
   where: {
     id: id
+  },
+  include: {
+    posts: true
   }
 })
 

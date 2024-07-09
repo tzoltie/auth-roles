@@ -9,7 +9,7 @@ const { verifyToken, verifyAdmin } = require("../middleware/auth");
 const router = express.Router();
 
 router.post("/", createPost);
-router.get('/', verifyToken, verifyAdmin,getAllPosts)
+router.get('/', verifyToken, verifyAdmin, getAllPosts)
 router.delete('/:id', verifyToken, verifyAdmin, deletePost)
 
 module.exports = router;

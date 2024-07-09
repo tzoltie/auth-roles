@@ -54,7 +54,7 @@ const login = async (req, res) => {
   })
 }
 
-const getAll = async (req, res) => {
+const getAllUsers = async (req, res) => {
   const users = await prisma.user.findMany({
     select: {
       id: true,
@@ -67,7 +67,9 @@ const getAll = async (req, res) => {
 }
 
 const deleteUser = async (req, res) => {
+  const { username } = req.body
   const id = Number(req.params.id)
+  const user = await findUser(username)
   const found = await findUserByID(id)
 
   if(!found) {
@@ -75,8 +77,17 @@ const deleteUser = async (req, res) => {
       message: "User not found by that ID"
     })
   }
+  if(
+    user.id !== id &&
+    user.role !== 'ADMIN'
+  ) {
+    return res.status(403).json({
+      message: "Invalid Credentials"
+    })
+  }
+
   const deletetedUser = await deleteUserByID(id)
-  res.status(200).json({
+  return res.status(200).json({
     user: deletetedUser
   })
 }
@@ -84,6 +95,6 @@ const deleteUser = async (req, res) => {
 module.exports = {
   createUser,
   login,
-  getAll,
+  getAllUsers,
   deleteUser
 }

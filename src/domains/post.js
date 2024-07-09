@@ -23,6 +23,7 @@ const deletePostByID = async (id) => await prisma.post.delete({
   }
 })
 
+
 module.exports = {
   createPostDb,
   findPostByID,

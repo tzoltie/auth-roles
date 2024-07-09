@@ -14,6 +14,7 @@ const verifyToken = async (req, res, next) => {
       if(!userFound) {
         throw "User not found"
       }
+      req.user = userFound
     } catch(e) {
       return res.status(401).json({
         error: 'Invalid token'
@@ -35,6 +36,7 @@ const verifyToken = async (req, res, next) => {
       if(userFound.role !== "ADMIN") {
         throw "Not an Admin"
       }
+      
     } catch(e) {
       return res.status(403).json({
         error: 'Invalid token'
