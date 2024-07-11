@@ -1,4 +1,4 @@
-const { PrismaClientKnownRequestError } = require("@prisma/client")
+const { PrismaClientKnownRequestError, Role } = require("@prisma/client")
 const { createPostDb, findPostByID, deletePostByID } = require('../domains/post.js')
 const prisma = require("../utils/prisma.js")
 const { findUser } = require("../domains/user.js")
@@ -39,22 +39,23 @@ const getAllPosts = async (req, res) => {
 
 
 const deletePost = async (req, res) => {
-  const { username } = req.body
   const id = Number(req.params.id)
   const found = await findPostByID(id)
-  const user = await findUser(username)
+  const user = req.user
+
 
   if(!found) {
     return res.status(404).json({
       message: "Post not found by that ID"
     })
   }
-  if(
-    user.id !== found.userId &&
-    user.role !== 'ADMIN'
-  ) {
+  
+  const isUsersPost = user.id === found.userId
+  const isAdmin = user.role === Role.ADMIN
+
+  if(!isAdmin && !isUsersPost) {
     return res.status(403).json({
-      message: "Invalid Credentials"
+      error: "Invalid Credentials"
     })
   }
   

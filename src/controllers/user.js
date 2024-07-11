@@ -1,4 +1,4 @@
-const { PrismaClientKnownRequestError } = require("@prisma/client")
+const { PrismaClientKnownRequestError, Role } = require("@prisma/client")
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
 const prisma = require('../utils/prisma.js')
@@ -7,8 +7,7 @@ const { createUserDb, findUser, findUserByID, deleteUserByID } = require('../dom
 const createUser = async (req, res) => {
   const {
     username,
-    password,
-    role
+    password
   } = req.body
 
   if (!username || !password) {
@@ -18,7 +17,7 @@ const createUser = async (req, res) => {
   }
 
   try {
-    const createdUser = await createUserDb(username, password, role)
+    const createdUser = await createUserDb(username, password)
 
     return res.status(201).json({ user: createdUser })
   } catch (e) {
@@ -67,9 +66,8 @@ const getAllUsers = async (req, res) => {
 }
 
 const deleteUser = async (req, res) => {
-  const { username } = req.body
   const id = Number(req.params.id)
-  const user = await findUser(username)
+  const user = req.user
   const found = await findUserByID(id)
 
   if(!found) {
@@ -77,12 +75,11 @@ const deleteUser = async (req, res) => {
       message: "User not found by that ID"
     })
   }
-  if(
-    user.id !== id &&
-    user.role !== 'ADMIN'
-  ) {
+  const isUser = user.id === id
+  const isAdmin = user.role === Role.ADMIN
+  if(!isUser && !isAdmin) {
     return res.status(403).json({
-      message: "Invalid Credentials"
+      error: "Invalid Credentials"
     })
   }
 
